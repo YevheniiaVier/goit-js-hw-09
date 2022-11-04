@@ -5,7 +5,6 @@ import { Notify } from 'notiflix/build/notiflix-notify-aio';
 const refs = {
   input: document.querySelector('#datetime-picker'),
   startBtn: document.querySelector('[ data-start]'),
-  div: document.querySelector('.timer'),
   days: document.querySelector('[data-days]'),
   hours: document.querySelector('[data-hours]'),
   minutes: document.querySelector('[data-minutes]'),
@@ -28,8 +27,9 @@ function convertMs(ms) {
 function addLeadingZero(value) {
   return String(value).padStart(2, '0');
 }
+
 refs.startBtn.disabled = true;
-let startTime = null;
+
 const options = {
   enableTime: true,
   time_24hr: true,
@@ -37,46 +37,38 @@ const options = {
   minuteIncrement: 1,
   onClose(selectedDates) {
     const currentDate = new Date();
-    if (selectedDates[0] > currentDate) {
-      refs.startBtn.disabled = false;
-    } else {
+    if (selectedDates[0] <= currentDate) {
       Notify.failure('Please choose a date in the future');
+    } else {
+      refs.startBtn.disabled = false;
     }
-    // console.log(selectedDates[0]);
-    // console.log(Date.now);
-
-    // startTime = selectedDates[0];
-    // console.log(startTime);
   },
 };
-
 const fp = flatpickr('#datetime-picker', options);
 
-// if (fp.selectedDates[0] <= Date.now) {
-//   refs.startBtn.disabled = true;
-// } else {
-//   refs.startBtn.disabled = false;
-// }
+class Timer {
+  constructor(onTick) {
+    this.onTick = onTick;
+  }
 
-const timer = {
   start() {
     const startTime = fp.selectedDates[0];
 
-    intervalId = setInterval(() => {
+    this.intervalId = setInterval(() => {
       const currentTime = Date.now();
       const deltaTime = startTime - currentTime;
       if (deltaTime < 1) {
-        clearInterval(intervalId);
-        refs.startBtn.disabled = false;
+        clearInterval(this.intervalId);
+        refs.input.disabled = false;
         return;
       }
       const timeComponents = convertMs(deltaTime);
-      //   const updatedTime = addLeadingZero(timeComponents);
-      updateClockFace(timeComponents);
-      //   console.log(timeComponents);
+      this.onTick(timeComponents);
     }, 1000);
-  },
-};
+  }
+}
+const timer = new Timer(updateClockFace);
+
 function updateClockFace({ days, hours, minutes, seconds }) {
   refs.days.textContent = addLeadingZero(days);
   refs.hours.textContent = addLeadingZero(hours);
@@ -94,11 +86,3 @@ function onstartBtnClick() {
   refs.input.disabled = true;
   timer.start();
 }
-console.log(refs.input);
-// console.log(refs.startBtn);
-// console.log(refs.span);
-// console.log(refs.days);
-// console.log(refs.hours);
-
-// console.log(refs.minutes);
-// console.log(refs.seconds);

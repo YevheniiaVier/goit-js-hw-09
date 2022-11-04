@@ -24,7 +24,6 @@ function onstartBtnClick() {
   refs.startBtn.disabled = true;
   intervalId = setInterval(() => {
     changeColor();
-    console.log('GO!');
   }, 1000);
 }
 
